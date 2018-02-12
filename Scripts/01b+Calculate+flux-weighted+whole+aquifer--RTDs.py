@@ -558,7 +558,7 @@ for pth in dir_list:
         line = 'Paper #2017WR021531-f06.{}'.format(form)
         fig_name = os.path.join(fig_dir, line)
         plt.savefig(fig_name, dpi=300)
-    plot.close()
+    plt.close()
 
 
     # # Notes on RTD parent distributions
