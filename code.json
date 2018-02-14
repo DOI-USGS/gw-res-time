@@ -1,0 +1,48 @@
+[
+  {
+    "name": "GRTD",
+    "organization": "U.S. Geological Survey",
+    "description": "Jupyter Notebooks for estimating groundwater residence time distributions",
+    "version": "v0.0.1",
+    "status": "Development",
+
+    "permissions": {
+      "usageType": "openSource",
+      "licenses": [
+        {
+          "name": "Public Domain, CC0-1.0",
+          "URL": "https://github.com/usgs/gw-res-time/blob/master/LICENSE.md"
+        }
+      ]
+    },
+
+    "homepageURL": "https://github.com/usgs/gw-res-time",
+    "disclaimerURL": "https://github.com/usgs/gw-res-time/blob/master/DISCLAIMER.md",
+    "repositoryUrl": "https://github.com/usgs/gw-res-time.git",
+    "vcs": "git",
+
+    "laborHours": null,
+
+    "tags": [
+      "groundwater",
+      "hydrology",
+      "simulation models",
+      "residence time",
+      "MODPATH"
+    ],
+
+    "languages": [
+      "Python",
+      "Jupyter Notebooks"
+    ],
+
+    "contact": {
+      "name": "Jeff Starn",
+      "email": "jjstarn@usgs.gov"
+    },
+
+    "date": {
+      "metadataLastUpdated": "2018-02-14"
+    }
+  }
+]
