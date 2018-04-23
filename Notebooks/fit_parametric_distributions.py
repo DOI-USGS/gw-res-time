@@ -35,11 +35,11 @@ def fit_dists(ly, lprt, dist_list):
         _cdf_l = dist.cdf(t, sh_l, first, sc_l)
         return fy * _cdf_e + (1 - fy) * _cdf_l
 
-    def implicit(t, sh_e, sc_e, sh_l, sc_l):
-        first = t.min()
-        _cdf_e = dist.cdf(t, sh_e, first, sc_e)
-        _cdf_l = dist.cdf(t, sh_l, first, sc_l)
-        return  _cdf_e / (1 + _cdf_e - _cdf_l)
+    # def implicit(t, sh_e, sc_e, sh_l, sc_l):
+        # first = t.min()
+        # _cdf_e = dist.cdf(t, sh_e, first, sc_e)
+        # _cdf_l = dist.cdf(t, sh_l, first, sc_l)
+        # return  _cdf_e / (1 + _cdf_e - _cdf_l)
 
     ## Fit all distributions
 
@@ -101,56 +101,56 @@ def fit_dists(ly, lprt, dist_list):
         fit_param_df.loc[lab, 'error'] = error_dict[lab]
 
         #     fit bimodal dists with implicit mixing 
-        lab = 'imp_{}'.format(dist.name)
-        print('fitting {}'.format(lab))
+        # lab = 'imp_{}'.format(dist.name)
+        # print('fitting {}'.format(lab))
 
-        bnds = (0, [+np.inf, +np.inf, +np.inf, +np.inf])
-        p0 = (up[0], up[2], up[0], up[2])
+        # bnds = (0, [+np.inf, +np.inf, +np.inf, +np.inf])
+        # p0 = (up[0], up[2], up[0], up[2])
 
-        try:
-            ip1, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='trf')
-            e1_cdf = implicit(lprt, *ip1)
-            e1 = ly - e1_cdf
-            sse1 = e1.T.dot(e1)
-        except Exception as e: 
-            print(lab, e)
-            sse1 = np.inf
+        # try:
+            # ip1, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='trf')
+            # e1_cdf = implicit(lprt, *ip1)
+            # e1 = ly - e1_cdf
+            # sse1 = e1.T.dot(e1)
+        # except Exception as e: 
+            # print(lab, e)
+            # sse1 = np.inf
 
-        try:
-            ip2, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='dogbox')
-            e2_cdf = implicit(lprt, *ip2)
-            e2 = ly - e2_cdf
-            sse2 = e2.T.dot(e2)
-        except Exception as e: 
-            print(lab, e)
-            sse2 = np.inf
+        # try:
+            # ip2, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='dogbox')
+            # e2_cdf = implicit(lprt, *ip2)
+            # e2 = ly - e2_cdf
+            # sse2 = e2.T.dot(e2)
+        # except Exception as e: 
+            # print(lab, e)
+            # sse2 = np.inf
 
-        if sse1 < sse2:
-            ip = ip1
-            e_cdf = e1_cdf
-            e = np.sqrt(sse1 / s)
-            meth = 'trf'
-        elif sse1 > sse2:
-            ip = ip2
-            e_cdf = e2_cdf
-            e = np.sqrt(sse2 / s)
-            meth = 'dogbox'
-        else:
-            ip = (0, 0, 0, 0)
-            e_cdf = np.nan
-            e = np.nan
-            meth = 'none'      
+        # if sse1 < sse2:
+            # ip = ip1
+            # e_cdf = e1_cdf
+            # e = np.sqrt(sse1 / s)
+            # meth = 'trf'
+        # elif sse1 > sse2:
+            # ip = ip2
+            # e_cdf = e2_cdf
+            # e = np.sqrt(sse2 / s)
+            # meth = 'dogbox'
+        # else:
+            # ip = (0, 0, 0, 0)
+            # e_cdf = np.nan
+            # e = np.nan
+            # meth = 'none'      
 
-        error_dict[lab] = e
-        cdf_dict[lab] = e_cdf
+        # error_dict[lab] = e
+        # cdf_dict[lab] = e_cdf
 
-        ip = np.insert(ip, 1, first)
-        ip = np.insert(ip, 4, first)
-        param_dict[lab] = ip
+        # ip = np.insert(ip, 1, first)
+        # ip = np.insert(ip, 4, first)
+        # param_dict[lab] = ip
 
-        fit_param_df.loc[lab, pars[:6]] = ip
-        fit_param_df.loc[lab, 'error'] = e
-        fit_param_df.loc[lab, 'meth'] = meth
+        # fit_param_df.loc[lab, pars[:6]] = ip
+        # fit_param_df.loc[lab, 'error'] = e
+        # fit_param_df.loc[lab, 'meth'] = meth
 
         # fit bimodal dists with explicit mixing 
         lab = 'add_{}'.format(dist.name)
