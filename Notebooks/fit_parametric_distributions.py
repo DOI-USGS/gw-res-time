@@ -20,7 +20,19 @@ def fit_dists(ly, lprt, dist_list):
     s = ly.shape[0]
     tt_dict['rt'] = lprt
     tt_dict['rt_cdf'] = ly
+	
+	# setup dictionaries of the MODFLOW units for proper labeling of figures.
+	lenunit = {0:'undefined units', 1:'feet', 2:'meters', 3:'centimeters'}
+	timeunit = {0:'undefined', 1:'second', 2:'minute', 3:'hour', 4:'day', 5:'year'}
 
+	# Create dictionary of multipliers for converting model time units to days
+	time_dict = dict()
+	time_dict[0] = 1.0 # undefined assumes days, so enter conversion to days
+	time_dict[1] = 24 * 60 * 60
+	time_dict[2] = 24 * 60
+	time_dict[3] = 24
+	time_dict[4] = 1.0
+	time_dict[5] = 1.0
 
     ## Define parametric models
 
@@ -231,10 +243,6 @@ def read_endpoints(endpoint_file, dis, time_dict):
 
     # select only 'Normally Terminated' particles; status code = 2
     ep_data = ep_data.loc[ep_data.Status == 2, :]
-
-    # calculate initial and final zero-based sequence numbers from [lay, row, col]
-    # tmp = ep_data[['Initial Layer', 'Initial Row', 'Initial Column']].values.tolist()
-    # ep_data['initial_node_num'] = np.array(dis.get_node(tmp)) - 1
 
     tmp = ep_data[['Initial Layer', 'Initial Row', 'Initial Column']] - 1
     ep_data['initial_node_num'] = dis.get_node(tmp.values.tolist())
