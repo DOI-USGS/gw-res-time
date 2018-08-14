@@ -71,7 +71,8 @@ def fit_dists(ly, lprt, dist_list):
         bnds = (0, [+np.inf, +np.inf])
 
         try:
-            up1, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='trf')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                up1, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='trf')
             e1_cdf = distfit(lprt, *up1)
             e1 = ly - e1_cdf
             sse1 = e1.T.dot(e1)
@@ -80,7 +81,8 @@ def fit_dists(ly, lprt, dist_list):
             sse1 = np.inf
 
         try:
-            up2, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='dogbox')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                up2, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='dogbox')
             e2_cdf = distfit(lprt, *up2)
             e2 = ly - e2_cdf
             sse2 = e2.T.dot(e2)
@@ -168,10 +170,11 @@ def fit_dists(ly, lprt, dist_list):
         lab = 'add_{}'.format(dist.name)
         print('fitting {}'.format(lab))
         bnds = (0, [+np.inf, +np.inf, +np.inf, +np.inf, 1.0]) 
-        p0 = (up[0], up[2], up[0], up[2], 1.0)
+        # p0 = (up[0], up[2], up[0], up[2], 1.0)
 
         try:
-            ep1, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='trf')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                ep1, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='trf')
             e1_cdf = explicit(lprt, *ep1)
             e1 = ly - e1_cdf
             sse1 = e1.T.dot(e1)        
@@ -180,7 +183,8 @@ def fit_dists(ly, lprt, dist_list):
             sse1 = np.inf
 
         try:
-            ep2, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='dogbox')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                ep2, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='dogbox')
             e2_cdf = explicit(lprt, *ep2)
             e2 = ly - e2_cdf
             sse2 = e2.T.dot(e2)
@@ -217,8 +221,22 @@ def fit_dists(ly, lprt, dist_list):
 
     return {'cdf' : cdf_dict, 'par' : param_dict, 'err' : error_dict, 'tt' : tt_dict}
     
-def read_endpoints(endpoint_file, dis, time_dict):
+def read_endpoints(endpoint_file, dis):
     import pandas as pd
+	
+	# setup dictionaries of the MODFLOW units for proper labeling of figures.
+    lenunit = {0:'undefined units', 1:'feet', 2:'meters', 3:'centimeters'}
+    timeunit = {0:'undefined', 1:'second', 2:'minute', 3:'hour', 4:'day', 5:'year'}
+    
+    # Create dictionary of multipliers for converting model time units to days
+    time_dict = dict()
+    time_dict[0] = 1.0 # undefined assumes days, so enter conversion to days
+    time_dict[1] = 24 * 60 * 60
+    time_dict[2] = 24 * 60
+    time_dict[3] = 24
+    time_dict[4] = 1.0
+    time_dict[5] = 1.0
+
     # count the number of header lines
     i = 0
     with open(endpoint_file) as f:
