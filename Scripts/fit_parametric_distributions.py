@@ -21,6 +21,18 @@ def fit_dists(ly, lprt, dist_list):
     tt_dict['rt'] = lprt
     tt_dict['rt_cdf'] = ly
 
+    # setup dictionaries of the MODFLOW units for proper labeling of figures.
+    lenunit = {0:'undefined units', 1:'feet', 2:'meters', 3:'centimeters'}
+    timeunit = {0:'undefined', 1:'second', 2:'minute', 3:'hour', 4:'day', 5:'year'}
+    
+    # Create dictionary of multipliers for converting model time units to days
+    time_dict = dict()
+    time_dict[0] = 1.0 # undefined assumes days, so enter conversion to days
+    time_dict[1] = 24 * 60 * 60
+    time_dict[2] = 24 * 60
+    time_dict[3] = 24
+    time_dict[4] = 1.0
+    time_dict[5] = 1.0
 
     ## Define parametric models
 
@@ -35,11 +47,11 @@ def fit_dists(ly, lprt, dist_list):
         _cdf_l = dist.cdf(t, sh_l, first, sc_l)
         return fy * _cdf_e + (1 - fy) * _cdf_l
 
-    def implicit(t, sh_e, sc_e, sh_l, sc_l):
-        first = t.min()
-        _cdf_e = dist.cdf(t, sh_e, first, sc_e)
-        _cdf_l = dist.cdf(t, sh_l, first, sc_l)
-        return  _cdf_e / (1 + _cdf_e - _cdf_l)
+    # def implicit(t, sh_e, sc_e, sh_l, sc_l):
+        # first = t.min()
+        # _cdf_e = dist.cdf(t, sh_e, first, sc_e)
+        # _cdf_l = dist.cdf(t, sh_l, first, sc_l)
+        # return  _cdf_e / (1 + _cdf_e - _cdf_l)
 
     ## Fit all distributions
 
@@ -59,7 +71,8 @@ def fit_dists(ly, lprt, dist_list):
         bnds = (0, [+np.inf, +np.inf])
 
         try:
-            up1, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='trf')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                up1, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='trf')
             e1_cdf = distfit(lprt, *up1)
             e1 = ly - e1_cdf
             sse1 = e1.T.dot(e1)
@@ -68,7 +81,8 @@ def fit_dists(ly, lprt, dist_list):
             sse1 = np.inf
 
         try:
-            up2, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='dogbox')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                up2, cov = so.curve_fit(distfit, lprt, ly, bounds = bnds, method='dogbox')
             e2_cdf = distfit(lprt, *up2)
             e2 = ly - e2_cdf
             sse2 = e2.T.dot(e2)
@@ -101,65 +115,66 @@ def fit_dists(ly, lprt, dist_list):
         fit_param_df.loc[lab, 'error'] = error_dict[lab]
 
         #     fit bimodal dists with implicit mixing 
-        lab = 'imp_{}'.format(dist.name)
-        print('fitting {}'.format(lab))
+        # lab = 'imp_{}'.format(dist.name)
+        # print('fitting {}'.format(lab))
 
-        bnds = (0, [+np.inf, +np.inf, +np.inf, +np.inf])
-        p0 = (up[0], up[2], up[0], up[2])
+        # bnds = (0, [+np.inf, +np.inf, +np.inf, +np.inf])
+        # p0 = (up[0], up[2], up[0], up[2])
 
-        try:
-            ip1, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='trf')
-            e1_cdf = implicit(lprt, *ip1)
-            e1 = ly - e1_cdf
-            sse1 = e1.T.dot(e1)
-        except Exception as e: 
-            print(lab, e)
-            sse1 = np.inf
+        # try:
+            # ip1, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='trf')
+            # e1_cdf = implicit(lprt, *ip1)
+            # e1 = ly - e1_cdf
+            # sse1 = e1.T.dot(e1)
+        # except Exception as e: 
+            # print(lab, e)
+            # sse1 = np.inf
 
-        try:
-            ip2, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='dogbox')
-            e2_cdf = implicit(lprt, *ip2)
-            e2 = ly - e2_cdf
-            sse2 = e2.T.dot(e2)
-        except Exception as e: 
-            print(lab, e)
-            sse2 = np.inf
+        # try:
+            # ip2, cov = so.curve_fit(implicit, lprt, ly, bounds = bnds, method='dogbox')
+            # e2_cdf = implicit(lprt, *ip2)
+            # e2 = ly - e2_cdf
+            # sse2 = e2.T.dot(e2)
+        # except Exception as e: 
+            # print(lab, e)
+            # sse2 = np.inf
 
-        if sse1 < sse2:
-            ip = ip1
-            e_cdf = e1_cdf
-            e = np.sqrt(sse1 / s)
-            meth = 'trf'
-        elif sse1 > sse2:
-            ip = ip2
-            e_cdf = e2_cdf
-            e = np.sqrt(sse2 / s)
-            meth = 'dogbox'
-        else:
-            ip = (0, 0, 0, 0)
-            e_cdf = np.nan
-            e = np.nan
-            meth = 'none'      
+        # if sse1 < sse2:
+            # ip = ip1
+            # e_cdf = e1_cdf
+            # e = np.sqrt(sse1 / s)
+            # meth = 'trf'
+        # elif sse1 > sse2:
+            # ip = ip2
+            # e_cdf = e2_cdf
+            # e = np.sqrt(sse2 / s)
+            # meth = 'dogbox'
+        # else:
+            # ip = (0, 0, 0, 0)
+            # e_cdf = np.nan
+            # e = np.nan
+            # meth = 'none'      
 
-        error_dict[lab] = e
-        cdf_dict[lab] = e_cdf
+        # error_dict[lab] = e
+        # cdf_dict[lab] = e_cdf
 
-        ip = np.insert(ip, 1, first)
-        ip = np.insert(ip, 4, first)
-        param_dict[lab] = ip
+        # ip = np.insert(ip, 1, first)
+        # ip = np.insert(ip, 4, first)
+        # param_dict[lab] = ip
 
-        fit_param_df.loc[lab, pars[:6]] = ip
-        fit_param_df.loc[lab, 'error'] = e
-        fit_param_df.loc[lab, 'meth'] = meth
+        # fit_param_df.loc[lab, pars[:6]] = ip
+        # fit_param_df.loc[lab, 'error'] = e
+        # fit_param_df.loc[lab, 'meth'] = meth
 
         # fit bimodal dists with explicit mixing 
         lab = 'add_{}'.format(dist.name)
         print('fitting {}'.format(lab))
         bnds = (0, [+np.inf, +np.inf, +np.inf, +np.inf, 1.0]) 
-        p0 = (up[0], up[2], up[0], up[2], 1.0)
+        # p0 = (up[0], up[2], up[0], up[2], 1.0)
 
         try:
-            ep1, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='trf')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                ep1, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='trf')
             e1_cdf = explicit(lprt, *ep1)
             e1 = ly - e1_cdf
             sse1 = e1.T.dot(e1)        
@@ -168,7 +183,8 @@ def fit_dists(ly, lprt, dist_list):
             sse1 = np.inf
 
         try:
-            ep2, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='dogbox')
+            with np.errstate(divide='ignore',invalid='ignore'):
+                ep2, cov = so.curve_fit(explicit, lprt, ly, bounds=bnds, method='dogbox')
             e2_cdf = explicit(lprt, *ep2)
             e2 = ly - e2_cdf
             sse2 = e2.T.dot(e2)
@@ -205,8 +221,22 @@ def fit_dists(ly, lprt, dist_list):
 
     return {'cdf' : cdf_dict, 'par' : param_dict, 'err' : error_dict, 'tt' : tt_dict}
     
-def read_endpoints(endpoint_file, dis, time_dict):
+def read_endpoints(endpoint_file, dis):
     import pandas as pd
+	
+	# setup dictionaries of the MODFLOW units for proper labeling of figures.
+    lenunit = {0:'undefined units', 1:'feet', 2:'meters', 3:'centimeters'}
+    timeunit = {0:'undefined', 1:'second', 2:'minute', 3:'hour', 4:'day', 5:'year'}
+    
+    # Create dictionary of multipliers for converting model time units to days
+    time_dict = dict()
+    time_dict[0] = 1.0 # undefined assumes days, so enter conversion to days
+    time_dict[1] = 24 * 60 * 60
+    time_dict[2] = 24 * 60
+    time_dict[3] = 24
+    time_dict[4] = 1.0
+    time_dict[5] = 1.0
+
     # count the number of header lines
     i = 0
     with open(endpoint_file) as f:
@@ -231,10 +261,6 @@ def read_endpoints(endpoint_file, dis, time_dict):
 
     # select only 'Normally Terminated' particles; status code = 2
     ep_data = ep_data.loc[ep_data.Status == 2, :]
-
-    # calculate initial and final zero-based sequence numbers from [lay, row, col]
-    # tmp = ep_data[['Initial Layer', 'Initial Row', 'Initial Column']].values.tolist()
-    # ep_data['initial_node_num'] = np.array(dis.get_node(tmp)) - 1
 
     tmp = ep_data[['Initial Layer', 'Initial Row', 'Initial Column']] - 1
     ep_data['initial_node_num'] = dis.get_node(tmp.values.tolist())
