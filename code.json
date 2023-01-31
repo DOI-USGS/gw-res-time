@@ -18,10 +18,10 @@
 
     "homepageURL": "https://github.com/usgs/gw-res-time",
     "disclaimerURL": "https://github.com/usgs/gw-res-time/blob/master/DISCLAIMER.md",
-    "repositoryUrl": "https://github.com/usgs/gw-res-time.git",
+    "repositoryURL": "https://github.com/usgs/gw-res-time.git",
     "vcs": "git",
 
-    "laborHours": null,
+    "laborHours": -1,
 
     "tags": [
       "groundwater",
